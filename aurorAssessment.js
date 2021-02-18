@@ -38,11 +38,10 @@ questions:
 E
 interpolate('Hello [name]', { 'name': 'Jim' }) // Hello Jim
 interpolate('Hello [name] [[author]]', { 'name': 'Jim' })  //Hello Jim [author]
-interpolate('Hello [name] [[author]], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast'}) // Hello Jim [[author]], would you like to eat some toast with [spread]?
-interpolate('Hello [name] [], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite'}) // Hello Jim, would you like to eat some toast with marmite?
-interpolate('Hello [name], would you like [] to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite'}) // Hello Jim, would you like to eat some toast with marmite?
+interpolate('Hello [name] [[author]], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast'}) // Hello Jim [[author]], would you like to eat some toast with [undefined]?
+interpolate('Hello [name][], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite', '': ''}) // Hello Jim, would you like to eat some toast with marmite?
+interpolate('Hello [name], would you like to [] some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite'}) // Hello Jim, would you like to [undefined] some toast with marmite?
 interpolate('[name], did you enjoy [action]ing your [food] with [spread]?', { 'name': 'Jim', 'action': 'eat', 'food': 'toast', 'spread': 'marmite'}) // Jim, did you enjoy eating your toast with marmite?
-interpolate('[name], did you enjoy [multiple word action] with [spread]?', { 'name': 'Jim', 'multiple word action': 'eating your toast', 'spread': 'marmite'}) // Jim, did you enjoy eating your toast with marmite?
 
 
 D
@@ -89,12 +88,34 @@ function interpolate(inputStr, dictObj) {
 
 
 
+// interpolate('Hello [name]', { 'name': 'Jim' }) // Hello Jim
+// interpolate('Hello [name] [[author]]', { 'name': 'Jim' })  //Hello Jim [author]
+// interpolate('Hello [name] [[author]], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast'}) // Hello Jim [[author]], would you like to eat some toast with [undefined]?
+// interpolate('Hello [name][], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite', '': ''}) // Hello Jim, would you like to eat some toast with marmite?
+// interpolate('Hello [name], would you like to [] some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite'}) // Hello Jim, would you like to [undefined] some toast with marmite?
+// interpolate('[name], did you enjoy [action]ing your [food] with [spread]?', { 'name': 'Jim', 'action': 'eat', 'food': 'toast', 'spread': 'marmite'}) // Jim, did you enjoy eating your toast with marmite?
+// interpolate('[name], did you enjoy [action and food] with [spread]?', { 'name': 'Jim', 'action and food': 'eating your toast', 'spread': 'marmite'}) // Jim, did you enjoy eating your toast with marmite?
 
 
-interpolate('Hello [name]', { 'name': 'Jim' }) // Hello Jim
-interpolate('Hello [name] [[author]]', { 'name': 'Jim' })  //Hello Jim [author]
-interpolate('Hello [name] [[author]], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast'}) // Hello Jim [[author]], would you like to eat some toast with [undefined]?
-interpolate('Hello [name][], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite', '': ''}) // Hello Jim, would you like to eat some toast with marmite?
-interpolate('Hello [name], would you like to [] some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite'}) // Hello Jim, would you like to [undefined] some toast with marmite?
-interpolate('[name], did you enjoy [action]ing your [food] with [spread]?', { 'name': 'Jim', 'action': 'eat', 'food': 'toast', 'spread': 'marmite'}) // Jim, did you enjoy eating your toast with marmite?
 
+test('replace a name', () => {
+    expect(interpolate('Hello [name]', { 'name': 'Jim' })).toBe('Hello Jim');
+});
+test('don\'t replace a value when the brackets are escaped', () => {
+    expect(interpolate('Hello [name] [[author]]', { 'name': 'Jim' })).toBe('Hello Jim [author]');
+});
+test("if a value in the input string doesn't have a corresponding key/value in the dictionary, replace that value with [undefined]", () => {
+    expect(interpolate('Hello [name] [[author]], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast'})).toBe('Hello Jim [[author]], would you like to eat some toast with [undefined]?');
+});
+test('if there is an empty pair of square brackets in the input string, and there is a corresponding empty string key in the dictionary, replace empty square brackets with corresponding dictionary value', () => {
+    expect(interpolate('Hello [name][], would you like to eat some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite', '': ''})).toBe('Hello Jim, would you like to eat some toast with marmite?');
+});
+test('if there is an empty pair of square brackets in the input string, and there is not a corresponding empty string key in the dictionary, replace empty square brackets with [undefined]', () => {
+    expect(interpolate('Hello [name], would you like to [] some [food] with [spread]?', { 'name': 'Jim', 'food': 'toast', 'spread': 'marmite'})).toBe('Hello Jim, would you like to [undefined] some toast with marmite?');
+});
+test('if there is a bracket value in the input string that is located inside a word, replace this bracket value with corresponding dictionary key value', () => {
+    expect(interpolate('[name], did you enjoy [action]ing your [food] with [spread]?', { 'name': 'Jim', 'action': 'eat', 'food': 'toast', 'spread': 'marmite'})).toBe('Jim, did you enjoy eating your toast with marmite?');
+});
+test('if there is a bracketed value in the input string that includes multiple words(i.e. spaces), replace this bracketed value with corresponding dictionary key value', () => {
+    expect(interpolate('[name], did you enjoy [action and noun] with [spread]?', { 'name': 'Jim', 'action and food': 'eating your toast', 'spread': 'marmite'})).toBe('Jim, did you enjoy eating your toast with marmite?');
+});
