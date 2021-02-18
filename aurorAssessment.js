@@ -56,12 +56,13 @@ function takes in input string and object
   for each element in array
     if element doesn't include '['
         add to result string
-    if element section has double '[[' or ']]' or ']' at start of string
+    if element section has double '[[' or ']' at start of string
         remove one bracket from start and
         add rest to result string
     if element has one starting '['
         extract section of string that is not '['
-        add cross-referenced dictObj value to result string
+        add cross-referenced dictObj value to result string if it exists
+        otherwise, add [undefined] to result
   return result string
 
 
